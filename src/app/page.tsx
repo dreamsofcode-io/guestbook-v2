@@ -24,6 +24,7 @@ interface GuestbookEntryType {
   replyToId: string | null;
   replyToMessage?: string;
   replyToUsername?: string | null;
+  isCreator: boolean;
 }
 
 interface PaginationInfo {
@@ -353,23 +354,27 @@ export default function Home() {
                 <div
                   key={entry.id}
                   id={`message-${entry.id}`}
-                  className="bg-white/5 backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-white/10 transition-all hover:shadow-xl hover:shadow-primary/10 hover:scale-[1.02] hover:border-white/20"
+                  className={entry.isCreator ?
+                    'bg-gradient-to-r from-fuchsia-500 via-rose-500 to-orange-500 p-[2px] rounded-2xl shadow-lg shadow-rose-500/40' : ''}
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
-                  <GuestbookEntry
-                    id={entry.id}
-                    message={entry.message}
-                    username={entry.displayUsername || entry.username || entry.name}
-                    createdAt={entry.createdAt}
-                    onUsernameAction={handleUsernameAction}
-                    isUserIgnored={ignoredUsers.includes(entry.displayUsername || entry.username || entry.name || '')}
-                    onReply={session?.user?.emailVerified ? handleReply : undefined}
-                    onScrollToMessage={handleScrollToMessage}
-                    isReply={!!entry.replyToId}
-                    replyToUsername={'replyToUsername' in entry ? entry.replyToUsername : undefined}
-                    replyToMessage={'replyToMessage' in entry ? entry.replyToMessage : undefined}
-                    replyToMessageId={entry.replyToId || undefined}
-                  />
+                  <div className="bg-white/5 backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-white/10 transition-all hover:shadow-xl hover:shadow-primary/10 hover:scale-[1.02] hover:border-white/20">
+                    <GuestbookEntry
+                      id={entry.id}
+                      message={entry.message}
+                      username={entry.displayUsername || entry.username || entry.name}
+                      createdAt={entry.createdAt}
+                      onUsernameAction={handleUsernameAction}
+                      isUserIgnored={ignoredUsers.includes(entry.displayUsername || entry.username || entry.name || '')}
+                      onReply={session?.user?.emailVerified ? handleReply : undefined}
+                      onScrollToMessage={handleScrollToMessage}
+                      isReply={!!entry.replyToId}
+                      isCreator={entry.isCreator}
+                      replyToUsername={'replyToUsername' in entry ? entry.replyToUsername : undefined}
+                      replyToMessage={'replyToMessage' in entry ? entry.replyToMessage : undefined}
+                      replyToMessageId={entry.replyToId || undefined}
+                    />
+                  </div>
                 </div>
               ))}
             </div>

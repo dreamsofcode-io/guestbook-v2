@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { Eye, EyeOff, Reply, Send, X, Quote } from 'lucide-react';
+import { Eye, EyeOff, Reply, Send, X, Quote, Sparkles } from 'lucide-react';
 
 interface GuestbookEntryProps {
   id: string;
@@ -18,6 +18,7 @@ interface GuestbookEntryProps {
   replyToMessage?: string;
   replyToMessageId?: string;
   onScrollToMessage?: (messageId: string) => void;
+  isCreator?: boolean;
 }
 
 export function GuestbookEntry({ 
@@ -32,7 +33,8 @@ export function GuestbookEntry({
   replyToUsername,
   replyToMessage,
   replyToMessageId,
-  onScrollToMessage
+  onScrollToMessage,
+  isCreator = false
 }: GuestbookEntryProps) {
   const [showReplyForm, setShowReplyForm] = useState(false);
   const [replyText, setReplyText] = useState('');
@@ -79,8 +81,11 @@ export function GuestbookEntry({
           {username ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="font-medium text-primary hover:text-primary/80 transition-colors">
+                <button className={
+                  `font-medium hover:text-primary/80 transition-colors ${isCreator ? 'text-transparent bg-gradient-to-r from-fuchsia-400 via-rose-400 to-orange-400 bg-clip-text' : 'text-primary'}`
+                }>
                   {username}
+                  {isCreator && <Sparkles className="w-3 h-3 inline ml-1" />}
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start">

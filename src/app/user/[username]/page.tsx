@@ -19,6 +19,7 @@ interface GuestbookEntryType {
   displayUsername: string | null;
   name: string | null;
   userId: string;
+  isCreator: boolean;
 }
 
 interface PaginationInfo {
@@ -211,15 +212,19 @@ export default function UserPage() {
                 {entries.map((entry, index) => (
                   <div
                     key={entry.id}
-                    className="bg-white/5 backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-white/10 transition-all hover:shadow-xl hover:shadow-primary/10 hover:scale-[1.02] hover:border-white/20"
+                    className={entry.isCreator ?
+                      'bg-gradient-to-r from-fuchsia-500 via-rose-500 to-orange-500 p-[2px] rounded-2xl shadow-lg shadow-rose-500/40' : ''}
                     style={{ animationDelay: `${index * 0.1}s` }}
                   >
-                    <GuestbookEntry
-                      id={entry.id}
-                      message={entry.message}
-                      username={entry.displayUsername || entry.username || entry.name}
-                      createdAt={entry.createdAt}
-                    />
+                    <div className="bg-white/5 backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-white/10 transition-all hover:shadow-xl hover:shadow-primary/10 hover:scale-[1.02] hover:border-white/20">
+                      <GuestbookEntry
+                        id={entry.id}
+                        message={entry.message}
+                        username={entry.displayUsername || entry.username || entry.name}
+                        createdAt={entry.createdAt}
+                        isCreator={entry.isCreator}
+                      />
+                    </div>
                   </div>
                 ))}
               </div>

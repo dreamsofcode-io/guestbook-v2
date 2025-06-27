@@ -10,6 +10,8 @@ import { revalidatePath } from 'next/cache';
 
 export async function getGuestbookEntries(page = 1, limit = 50) {
   const offset = (page - 1) * limit;
+
+  const creatorUsername = process.env.CREATOR_USERNAME?.toLowerCase();
   
   // Get ALL entries (both main messages and replies) in chronological order
   const entries = await db
@@ -28,6 +30,7 @@ export async function getGuestbookEntries(page = 1, limit = 50) {
     .orderBy(desc(guestbook.createdAt))
     .limit(limit)
     .offset(offset);
+
 
   // For replies, we need to get the original message info
   const entriesWithReplyInfo = await Promise.all(
@@ -57,13 +60,21 @@ export async function getGuestbookEntries(page = 1, limit = 50) {
     })
   );
 
+  const entriesWithCreator = entriesWithReplyInfo.map(entry => {
+    const entryUsername = (entry.displayUsername || entry.username || entry.name)?.toLowerCase();
+    return {
+      ...entry,
+      isCreator: !!creatorUsername && entryUsername === creatorUsername,
+    };
+  });
+
   // Get total count for pagination (all entries)
   const totalCount = await db
     .select({ count: sql<number>`count(*)` })
     .from(guestbook);
 
   return {
-    entries: entriesWithReplyInfo,
+    entries: entriesWithCreator,
     pagination: {
       page,
       limit,
@@ -77,6 +88,8 @@ export async function getGuestbookEntries(page = 1, limit = 50) {
 
 export async function getUserPosts(userId: string, page = 1, limit = 50) {
   const offset = (page - 1) * limit;
+
+  const creatorUsername = process.env.CREATOR_USERNAME?.toLowerCase();
   
   const entries = await db
     .select({
@@ -95,6 +108,14 @@ export async function getUserPosts(userId: string, page = 1, limit = 50) {
     .limit(limit)
     .offset(offset);
 
+  const entriesWithCreator = entries.map(entry => {
+    const entryUsername = (entry.displayUsername || entry.username || entry.name)?.toLowerCase();
+    return {
+      ...entry,
+      isCreator: !!creatorUsername && entryUsername === creatorUsername,
+    };
+  });
+
   // Get total count for this user
   const totalCount = await db
     .select({ count: sql<number>`count(*)` })
@@ -102,7 +123,7 @@ export async function getUserPosts(userId: string, page = 1, limit = 50) {
     .where(eq(guestbook.userId, userId));
 
   return {
-    entries,
+    entries: entriesWithCreator,
     pagination: {
       page,
       limit,

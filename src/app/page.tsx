@@ -11,6 +11,7 @@ import { getGuestbookEntries, createGuestbookEntry } from '@/actions/guestbook';
 import { getUserPreferences, updateIgnoredUsers, getUserIdByUsername } from '@/actions/preferences';
 import { Button } from '@/components/ui/button';
 import { MessageSquare, Sparkles, KeyRound, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 interface GuestbookEntryType {
@@ -39,6 +40,7 @@ export default function Home() {
   const router = useRouter();
   const { data: session, isPending, refetch: refetchSession } = useSession();
   const queryClient = useQueryClient();
+  const creatorUsername = process.env.CREATOR_USERNAME;
   
   const [currentPage, setCurrentPage] = useState(1);
   const [showOtpInput, setShowOtpInput] = useState(false);
@@ -200,7 +202,7 @@ export default function Home() {
   const filteredEntries = showIgnored 
     ? entries 
     : entries.filter(entry => {
-        const username = entry.displayUsername || entry.username || entry.name;
+        const username = entry.displayUsername || entry.username || entry.name || '';
         return !username || !ignoredUsers.includes(username);
       });
 
@@ -364,29 +366,43 @@ export default function Home() {
             </div>
           ) : (
             <div className="grid gap-4">
-              {filteredEntries.map((entry, index) => (
-                <div
-                  key={entry.id}
-                  id={`message-${entry.id}`}
-                  className="bg-white/5 backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-white/10 transition-all hover:shadow-xl hover:shadow-primary/10 hover:scale-[1.02] hover:border-white/20"
-                  style={{ animationDelay: `${index * 0.1}s` }}
-                >
-                  <GuestbookEntry
-                    id={entry.id}
-                    message={entry.message}
-                    username={entry.displayUsername || entry.username || entry.name}
-                    createdAt={entry.createdAt}
-                    onUsernameAction={handleUsernameAction}
-                    isUserIgnored={ignoredUsers.includes(entry.displayUsername || entry.username || entry.name || '')}
-                    onReply={session?.user?.emailVerified ? handleReply : undefined}
-                    onScrollToMessage={handleScrollToMessage}
-                    isReply={!!entry.replyToId}
-                    replyToUsername={'replyToUsername' in entry ? entry.replyToUsername : undefined}
-                    replyToMessage={'replyToMessage' in entry ? entry.replyToMessage : undefined}
-                    replyToMessageId={entry.replyToId || undefined}
-                  />
-                </div>
-              ))}
+              {filteredEntries.map((entry, index) => {
+                const username = entry.displayUsername || entry.username || entry.name || '';
+                const isCreator = username === creatorUsername;
+                return (
+                  <div
+                    key={entry.id}
+                    className={cn(
+                      'rounded-2xl',
+                      isCreator && 'p-[2px] bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 shadow-xl shadow-pink-500/30'
+                    )}
+                    style={{ animationDelay: `${index * 0.1}s` }}
+                  >
+                    <div
+                      id={`message-${entry.id}`}
+                      className={cn(
+                        'bg-white/5 backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-white/10 transition-all hover:shadow-xl hover:shadow-primary/10 hover:scale-[1.02] hover:border-white/20',
+                        isCreator && 'border-transparent rounded-[inherit] ring-2 ring-pink-500/40'
+                      )}
+                    >
+                      <GuestbookEntry
+                        id={entry.id}
+                        message={entry.message}
+                        username={username}
+                        createdAt={entry.createdAt}
+                        onUsernameAction={handleUsernameAction}
+                        isUserIgnored={ignoredUsers.includes(username)}
+                        onReply={session?.user?.emailVerified ? handleReply : undefined}
+                        onScrollToMessage={handleScrollToMessage}
+                        isReply={!!entry.replyToId}
+                        replyToUsername={'replyToUsername' in entry ? entry.replyToUsername : undefined}
+                        replyToMessage={'replyToMessage' in entry ? entry.replyToMessage : undefined}
+                        replyToMessageId={entry.replyToId || undefined}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
 
